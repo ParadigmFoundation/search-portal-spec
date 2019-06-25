@@ -14,13 +14,15 @@ Specification document (this README), [design screenshots](./images), [API refer
     - [Orders for query](#orders-for-query)
     - [Order by ID](#order-by-id)
 - [Code samples](#code-samples)
+    - [Connect to Metamask](#connect-to-metamask)
     - [Load address](#load-address)
+    - [Check order status](#check-order-status)
+    - [Verify fill](#verify-fill)
     - [Execute fill](#execute-fill)
-    - [Check fill status](#check-fill-status)
-    - [Verify fill status](#verify-fill-status)
     - [Check allowances](#check-allowances)
     - [Check balances](#check-balances)
     - [Await transaction](#await-transaction)
+    - [Validate Ethereum address](#validate-ethereum-address)
 
 ## Background
 The search portal enables users to view and fill [0x](https://0x.org) orders that have been relayed through the [Kosu](https://docs.kosu.io) network. It provides a simple interface to query orders across token pairs for bids and asks, and to sort by price and size.
@@ -101,16 +103,71 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 ## Code samples
 JavaScript code samples for working with the `0x.js` and `web3` libraries for checking balances and filling orders.
 
+### Connect to Metamask
+Use the following sample to connect to Metamask and load the user's `coinbase` address. This action should be triggered by a user clicking the "Connect to MetaMask" button. If the following throws, it can be assumed the user is in an incompatible browser (or doesn't have Metamask installed).
+
+The `web3` instance and `coinbase` address should be saved and accessible throughout the application.
+
+```javascript
+import Web3 from "web3";
+
+async function connectMetamask() {
+    if (window.ethereum !== void 0) {
+        try {
+            // will prompt user with pop-up to allow site access
+            await window.ethereum.enable();
+
+            // load this web3 into state somewhere (needed later)
+            web3 = new Web3(window.ethereum);
+
+            // additionally, store the users address somewhere
+            coinbase = await web3.eth.getCoinbase();
+        } catch (error) {
+            throw new Error("user denied site access");
+        }
+    } else if (window.web3 !== void 0) {
+        // same as above, var (or let) scoped, or stored in redux state
+        web3 = new Web3(web3.currentProvider);
+        coinbase = await web3.eth.getCoinbase();
+
+        // optional
+        global.web3 = web3;
+    } else {
+        throw new Error("non-ethereum browser detected");
+    }
+  }
+```
+
 ### Load address
+The user's `coinbase` address may be loaded any time from an [initialized `web3`](#connect-to-metamask) instance. It should be stored in-state for easy access.
+
+```javascript
+async function loadCoinbase() {
+    const coinbase = await web3.eth.getCoinbase();
+    return coinbase;
+}
+```
+
+### Check order status
+
+### Verify fill
 
 ### Execute fill
-
-### Check fill status
-
-### Verify fill success
 
 ### Check allowances
 
 ### Check balances
 
 ### Await transaction
+
+### Validate Ethereum address
+An Ethereum address is a 20-byte identifier used to receive assets on the Ethereum network, and is usually represented as a 42-character ("0x" prefixed) hexadecimal encoded string. They can be validated with a simple regular expression.
+
+```javascript
+function isValidAddress(maybeAddress) {
+    if (typeof maybeAddress !== "string") {
+        return false;
+    }
+    return /^0x[a-fA-F0-9]{40}$/.test(maybeAddress);
+}
+```
