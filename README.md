@@ -114,7 +114,7 @@ The returned quotes include `orderId` values which can be used to load the full 
 - **Query Parameters:**
     
     | Name | Required | Default | Description |
-    | :--- | :------: | :-----: | :---------- |
+    | :--: | :------: | :-----: | :---------- |
     |`baseAsset`|`true`|-|Base asset token address.|
     |`quoteAsset`|`true`|-|Quote asset token address.|
     |`side`|`true`|-|Specify to retrieve `bid` or `ask` orders for the pair.|
@@ -170,7 +170,7 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 - **Query Parameters:**
     
     | Name | Required | Default | Description |
-    |:-----| :------: | :-----: | :---------- |
+    |:---: | :------: | :-----: | :---------- |
     |`id`| `true` | - | The hex-encoded transaction ID of the order to fetch.|
 
 
