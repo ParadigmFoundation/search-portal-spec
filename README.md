@@ -114,12 +114,12 @@ The returned quotes include `orderId` values which can be used to load the full 
 - **Query Parameters:**
     
     | Name | Required | Default | Description |
-    | :--- | :------- | :------ | :---------- |
-    |`baseAsset`|`true`|`n/a`|Base asset token address.|
-    |`quoteAsset`|`true`|n/a|Quote asset token address.|
-    |`side`|`true`|n/a|Specify to retrieve `bid` or `ask` orders for the pair.|
-    |`page`|`false`|1| The page number to retrieve (based on `perPage`).| 
-    |`perPage`|`false`|10|The number of order stubs to load per page.|
+    | :--- | :------: | :-----: | :---------- |
+    |`baseAsset`|`true`|-|Base asset token address.|
+    |`quoteAsset`|`true`|-|Quote asset token address.|
+    |`side`|`true`|-|Specify to retrieve `bid` or `ask` orders for the pair.|
+    |`page`|`false`|`1`| The page number to retrieve (based on `perPage`).| 
+    |`perPage`|`false`|`10`|The number of order stubs to load per page.|
 
 
 - **Example:**
@@ -169,9 +169,9 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 
 - **Query Parameters:**
     
-    | Name | Description |
-    |:-----|:------------|
-    |`id`|The 66 character 0x-prefixed Kosu transaction ID of the order to return.|
+    | Name | Required | Default | Description |
+    |:-----| :------: | :-----: | :---------- |
+    |`id`| `true` | - | The hex-encoded transaction ID of the order to fetch.|
 
 
 - **Example:**
