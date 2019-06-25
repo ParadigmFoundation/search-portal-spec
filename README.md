@@ -165,15 +165,12 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 
 #### Request format
 - **API Path:** `/order`
-
-
+- **HTTP Method:** `GET`
 - **Query Parameters:**
     
     | Name | Required | Default | Description |
     |:---: | :------: | :-----: | :---------- |
     |`id`| `true` | - | The hex-encoded transaction ID of the order to fetch.|
-
-
 - **Example:**
     ```bash
     curl 'https://search.zaidan.io/api/v1/order?id=0x3b5d97f1a8d0eb833fe1954f87ec3e8099a1d012f5aac397c987b414060546af'
