@@ -16,15 +16,17 @@ Specification document (this README), [design screenshots](./images), [API refer
     - [Order by ID](#order-by-id)
 - [Code samples](#code-samples)
     - [Connect to Metamask](#connect-to-metamask)
-    - [Load address](#load-address)
+    - [Initialize 0x contracts](#initialize-0x-contracts)
+    - [Load user address](#load-user-address)
     - [Check order status](#check-order-status)
     - [Verify fill](#verify-fill)
     - [Execute fill](#execute-fill)
-    - [Check proxy allowance](#check-allowances)
+    - [Check proxy allowance](#check-proxy-allowance)
     - [Set proxy allowance](#set-proxy-allowance)
-    - [Check token balance](#check-balances)
-    - [Await transaction](#await-transaction)
+    - [Check token balance](#check-token-balance)
+    - [Await transaction success](#await-transaction-success)
     - [Validate Ethereum address](#validate-ethereum-address)
+    - [Get gas price](#get-gas-price)
 
 ## Background
 The search portal enables users to view and fill [0x](https://0x.org) orders that have been relayed through the [Kosu](https://docs.kosu.io) network. It provides a simple interface to query orders across token pairs for bids and asks, and to sort by price and size.
@@ -103,8 +105,48 @@ API reference for a future middleware server that will respond to client request
 ### Orders for query
 Load and paginate historical orders submitted by a given maker's trading `pair`, and order `side` (bid/ask).
 
+#### Request format
+
+#### Response format
+
 ### Order by ID
 Load a full 0x order object from the Kosu network, provided an `orderId` string.
+
+#### Request format
+- **API Path:** `/order`
+- **Query Parameters:**
+    |Name|Description|
+    |:-|:-|
+    |`id`|The 66 character 0x-prefixed Kosu transaction ID of the order to return.|
+- **Example:**
+    ```bash
+    curl 'https://search.zaidan.io/api/v1/order?id=0x3b5d97f1a8d0eb833fe1954f87ec3e8099a1d012f5aac397c987b414060546af'
+    ```
+#### Response format
+- **Headers:**
+    - Content-Type: `application/json`
+- **Body:**
+    ```json
+    {
+        "id": "0x3b5d97f1a8d0eb833fe1954f87ec3e8099a1d012f5aac397c987b414060546af",
+        "order": {
+            "makerAddress": "0xa916b82ff122591cc88aac0d64ce30a8e3e16081",
+            "makerAssetAmount": "1000000000000000000",
+            "takerAssetAmount": "1000000000000000000",
+            "expirationTimeSeconds": "1559941224",
+            "makerAssetData": "0xf47261b0000000000000000000000000e41d2489571d322189246dafa5ebde1f4699f498",
+            "takerAssetData": "0xf47261b000000000000000000000000089d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+            "makerFee": "0",
+            "takerFee": "0",
+            "salt": "45038821417800674048750115101428369947416636882675537172847246510449321143785",
+            "exchangeAddress": "0x4f833a24e1f95d70f028921e27040ca56e09ab0b",
+            "takerAddress": "0x0000000000000000000000000000000000000000",
+            "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
+            "senderAddress": "0x0000000000000000000000000000000000000000",
+            "signature": "0x1cfab1d9c5df24fa0f74f274b4e0668735bfd9faf029448b6925b795f3a97ce75826bbdfdfaad7eb40692e239726dfc36d74e740e579cb561cd6a798ad92921c4202",
+        },
+    }
+    ```
 
 ## Code samples
 JavaScript code samples for working with the `0x.js` and `web3` libraries for checking balances and filling orders.
@@ -168,11 +210,11 @@ async function initZeroEx(web3) {
 }
 ```
 
-### Load address
+### Load user address
 The user's `coinbase` address may be loaded any time from an [initialized `web3`](#connect-to-metamask) instance. It should be stored in-state for easy access.
 
 ```javascript
-async function loadCoinbase() {
+async function getCoinbase() {
     const coinbase = await web3.eth.getCoinbase();
     return coinbase;
 }
@@ -182,8 +224,11 @@ async function loadCoinbase() {
 Prior to [verifying](#verify-fill) or actually [filling an order](#execute-fill) as a taker, the maker order must be checked for its fillable status.
 
 ```javascript
+// pseudocode - should be loaded from redux state
+const { contractWrappers } = state;
+
 // the order object should come from API call
-async function isFillable(contractWrappers, order) {
+async function isFillable(order) {
     const info = await contractWrappers.exchange.getOrderInfoAsync(order);
     if (info.orderStatus !== 2) {
         return false;
