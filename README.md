@@ -102,12 +102,63 @@ The [specification](#specification) section contains screenshots of relevant sta
 ## API Reference
 API reference for a future middleware server that will respond to client requests from a database of Kosu orders.
 
-### Orders for query
-Load and paginate historical orders submitted by a given maker's trading `pair`, and order `side` (bid/ask).
+### Search for orders
+Load and paginate an order-book snapshot of quotes rom the Kosu network by supplying a `baseAsset` address, `quoteAsset` address, and a `side` (bid/ask).
+
+The returned quotes include `orderId` values which can be used to load the full executable order with the [`/order` method.](#order-by-id)
 
 #### Request format
+- **API Path:** `/search`
 
+
+- **Query Parameters:**
+    
+    | Name | Required | Default | Description |
+    | :--- | :------- | :------ | :---------- |
+    |`baseAsset`|`true`|`n/a`|Base asset token address.|
+    |`quoteAsset`|`true`|n/a|Quote asset token address.|
+    |`side`|`true`|n/a|Specify to retrieve `bid` or `ask` orders for the pair.|
+    |`page`|`false`|1| The page number to retrieve (based on `perPage`).| 
+    |`perPage`|`false`|10|The number of order stubs to load per page.|
+
+
+- **Example:**
+    ```bash
+    curl 'https://search.zaidan.io/api/v1/search?baseAsset=0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2&quoteAsset=0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359&side=ask&perPage=2'
+    ```
 #### Response format
+- **Headers:**
+    - Content-Type: `application/json`
+- **Body:**
+    ```json
+    {
+        "side": "ask",
+        "quoteAssetAddress": "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+        "baseAssetAddress": "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", 
+        "page": 1,
+        "perPage": 2,
+        "quotes": [
+            {
+                "price": "21624920000000",
+                "size": "534680005130000000",
+                "expiration": "1561496835",
+                "orderId": "0x012761a3ed31b43c8780e905a260a35faefcc527be7516aa11c0256729b5b351bc33"
+            },
+            {
+                "price": "216249200000000000",
+                "size": "53468000513000000000",
+                "expiration": "1561497137",
+                "orderId": "0x013842a3ed31b43c8780e905a260a35faefcc527be7516aa11c0256729b5b3518891"
+            }
+        ]
+    }
+    ```
+- **Notes:**
+    - Expiration times are UNIX timestamps (seconds).
+    - Expiration times should be converted to JavaScript `Date` objects. 
+    - Prices and sizes (`price` and `size`) are in base units (wei) of the quote asset.
+    - Prices and order sizes should be converted to `BigNumbers` for storage/processing (for precision).
+    - The `orderId` for an quote can be used in the [`/order`](#order-by-id) method to get the full order.
 
 ### Order by ID
 Load a full 0x order object from the Kosu network, provided an `orderId` string.
@@ -148,8 +199,8 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
             "takerAddress": "0x0000000000000000000000000000000000000000",
             "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
             "senderAddress": "0x0000000000000000000000000000000000000000",
-            "signature": "0x1cfab1d9c5df24fa0f74f274b4e0668735bfd9faf029448b6925b795f3a97ce75826bbdfdfaad7eb40692e239726dfc36d74e740e579cb561cd6a798ad92921c4202",
-        },
+            "signature": "0x1cfab1d9c5df24fa0f74f274b4e0668735bfd9faf029448b6925b795f3a97ce75826bbdfdfaad7eb40692e239726dfc36d74e740e579cb561cd6a798ad92921c4202"
+        }
     }
     ```
 
