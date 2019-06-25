@@ -118,7 +118,7 @@ If more than one (i.e. both) assets in the pair do not have sufficient allowance
 - The button "set {TICKER} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address.
 
 #### No proxy allowance custom
-![Allowances: not set custom](./images/allowances-not-set-cusotm.png)
+![Allowances: not set custom](./images/allowances-not-set-custom.png)
 - If there is [no proxy allowance](#check-proxy-allowance) for a custom token, this state can be shown.
 - The button "set {ADDRESS} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address, after the custom address [is validated.](#validate-ethereum-address)
 - The full address should not be shown, but instead concatenated as `0x14d..35a` (for example).
