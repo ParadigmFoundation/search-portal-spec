@@ -83,7 +83,6 @@ The states in this section indicate the default state of the portal as displayed
 Prior to interacting with any functionality of the portal, the user must [allow the website access](#connect-to-metamask) to their Metamask account by clicking "Connect to Metamask."
 
 #### On load
-https://sketch.cloud/s/YjEQL/a/3edMxZ
 ![Main page: on-load](./images/main-no-metamask.png)
 - The default state is to load bids for the WETH/DAI pair.
 - Prior to successful connection, the "take" action on loaded orders should be disabled.
@@ -92,13 +91,11 @@ https://sketch.cloud/s/YjEQL/a/3edMxZ
 - The initialized `web3` and [necessary 0x contract instances](#initialize-0x-contracts) should be saved to accessible state.
 
 #### Metamask connection
-https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Main page: connected](./images/main-connected.png)
 - After successful connection ([connection function](#connect-to-metamask) resolves with no error) the [user's `coinbase` address](#load-user-address) should be displayed.
 - Additionally, their DAI balance (and USD conversion) should be displayed as well.
 
 #### Showing balances
-https://sketch.cloud/s/YjEQL/a/7Dz5Y2
 ![Main page: balance bar](./images/main-balance-bar.png)
 - The top navigation bar always show's the user's `coinbase` address, and balance of the quote token.
 - If the base and quote tokens are switched (via "token pair", or the switch button) the displayed balance should update to the new quote asset.
@@ -116,13 +113,11 @@ If an allowance must be set for one of the tokens in the pair, the user should b
 If more than one (i.e. both) assets in the pair do not have sufficient allowances set, the prompt to set an allowance for each should be displayed (see below). The user should be prompted to set the an allowance for the base asset first, then the quote asset.
 
 #### No proxy allowance standard
-https://sketch.cloud/s/YjEQL/a/JD1G4r
 ![Allowances: not set standard](./images/allowances-not-set-standard.png)
 - If there is [no proxy allowance](#check-proxy-allowance) for a standard token, this state can be shown.
 - The button "set {TICKER} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address.
 
 #### No proxy allowance custom
-https://sketch.cloud/s/YjEQL/a/ZyGwYp
 ![Allowances: not set custom](./images/allowances-not-set-cusotm.png)
 - If there is [no proxy allowance](#check-proxy-allowance) for a custom token, this state can be shown.
 - The button "set {ADDRESS} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address, after the custom address [is validated.](#validate-ethereum-address)
@@ -145,7 +140,6 @@ A new query should be made (and the [order table](#order-table) updated) wheneve
 Additionally, whenever a new base or quote asset is selected, [allowances must be checked](#check-proxy-allowance) for the newly selected token(s). See [the allowance section](#allowances) as well.
 
 #### Standard tokens
-https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Filter form: standard tokens](./images/filter-main-state.png)
 - Some [common ERC-20 tokens](#standard-tokens) are available for selection via a [drop down](#token-drop-down) menu.
 - Both a base (leftmost, WETH here) and quote (rightmost, DAI here) asset can be selected.
@@ -153,13 +147,11 @@ https://sketch.cloud/s/YjEQL/a/qrG9my
 - Notice the quote asset's balance (DAI) is displayed to the user.
 
 #### Bid and ask
-https://sketch.cloud/s/YjEQL/a/maZl4g
 ![Filter form: bid and ask](./images/filter-bid-ask.png)
 - The "bid/ask" toggle can be flipped.
 - When toggled, a [new call to `/search`](#search-for-orders) should be made, triggering the [order table](#order-table) to update.
 
 #### Token drop-down
-https://sketch.cloud/s/YjEQL/a/LjEPGQ
 ![Filter form: token drop-down](./images/filter-drop-down.png)
 - The drop down menu for quote and base tokens allows selection of pre-set [standard tokens](#standard-tokens) and custom.
 - Base and quote currency must be different, so if a user tries to set the quote token for what is currently the base token, base and quote should be switched (same as clicking switch button).
@@ -169,14 +161,12 @@ https://sketch.cloud/s/YjEQL/a/LjEPGQ
     - A new REST API call [must be made to `/search`](#search-for-orders) with the new token(s).
 
 #### Standard to custom
-https://sketch.cloud/s/YjEQL/a/DvezjJ
 ![Filter form: standard to custom](./images/filter-token-custom.png)
 - This state shows a standard token as the base token, and a custom token as the quote token.
 - Note that displayed prices and sizes in the [order table](#order-table) now show a shortened address instead of  a standard token ticker.
 - When custom is selected, a new API call should not be made until the user has entered a custom token address [and it has been validated.](#validate-ethereum-address)
 
 #### Custom to custom
-https://sketch.cloud/s/YjEQL/a/ajYZ95
 ![Filter form: custom to custom](./images/filter-custom-custom.png)
 - This state shows a custom token selected for both the base and quote tokens.
 - Note that displayed prices and sizes in the [order table](#order-table) now show a shortened address instead of a ticker from a standard token.
@@ -184,7 +174,6 @@ https://sketch.cloud/s/YjEQL/a/ajYZ95
 - In this case, a new API call should only be made after _both_ custom token addresses have been entered and validated.
 
 #### Coming soon
-https://sketch.cloud/s/YjEQL/a/Ok9ADk
 ![Filter form: coming soon hover](./images/filter-coming-soon.png)
 - The "order source" selection can currently only be 0x orders.
 - The other selections (dY/dX and Dharma) should be disabled.
@@ -198,7 +187,6 @@ The quotes displayed in the table are based on response objects from the [the `/
 Each time [the form](#filter-form) is updated, a new set of quotes should be loaded from the API.
 
 #### Prompt to fill
-https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Order table: main state](./images/order-table-main.png)
 - If [allowances are correctly set,](#allowances) the "take" button can be displayed to user's for each quote.
 - Clicking "take" should trigger the following actions:
@@ -220,19 +208,16 @@ https://sketch.cloud/s/YjEQL/a/qrG9my
 - If the fill fails, show the [failed fill state.](#failed-fill)
 
 #### Pending state
-https://sketch.cloud/s/YjEQL/a/44R01d
 ![Order table: fill pending](./images/order-table-pending.png)
 - This state is displayed while [async validation](#prompt-to-fill) and [async execution](#confirmation-and-signature) occur.
 - The displayed icon in the button should rotate to indicate pending requests and transactions.
 
 #### Successful fill
-https://sketch.cloud/s/YjEQL/a/eJPe2q
 ![Order table: fill success](./images/order-table-taken.png)
 - This state can be displayed when a [fill completes](#confirmation-and-signature) successfully.
 - Clicking on the "taken" button should take the user to the Etherscan TX page corresponding to the [fill transaction ID.](#execute-fill)
 
 #### Failed fill
-https://sketch.cloud/s/YjEQL/a/GGAvZb
 ![Order table: fill failed](./images/order-table-failed.png)
 - This state can be displayed when a fill or validation fails when attempting to take an order.
 - If the failure is [during the fill execution,](#execute-fill) no link is needed.
