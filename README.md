@@ -6,6 +6,7 @@ Specification document (this README), [design screenshots](./images), [API refer
 
 - [Background](#background)
     - [Prerequisites](#prerequisites)
+    - [Notes](#notes)
 - [Specification](#specification)
     - [Main page](#main-page)
     - [Filter form](#filter-form)
@@ -19,8 +20,9 @@ Specification document (this README), [design screenshots](./images), [API refer
     - [Check order status](#check-order-status)
     - [Verify fill](#verify-fill)
     - [Execute fill](#execute-fill)
-    - [Check allowances](#check-allowances)
-    - [Check balances](#check-balances)
+    - [Check proxy allowance](#check-allowances)
+    - [Set proxy allowance](#set-proxy-allowance)
+    - [Check token balance](#check-balances)
     - [Await transaction](#await-transaction)
     - [Validate Ethereum address](#validate-ethereum-address)
 
@@ -38,6 +40,10 @@ The [specification](#specification) section contains screenshots of relevant sta
 - Understanding of quote vs. base currency ([link](https://en.wikipedia.org/wiki/Currency_pair))
 - Understanding of bids vs. asks and relation to currency pair ([link](https://www.investopedia.com/terms/b/bid-and-ask.asp))
 - Understanding of basic order book concepts ([link](https://en.wikipedia.org/wiki/Central_limit_order_book))
+
+### Notes
+- Use `BigNumber`instances for balances and allowances (can be imported from `0x.js`)
+- Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html))
 
 ## Specification
 
@@ -103,6 +109,8 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 ## Code samples
 JavaScript code samples for working with the `0x.js` and `web3` libraries for checking balances and filling orders.
 
+Most of the function implementations can be copy/pasted, except for the loading of required "globals" such as initialized `ContractWrapper` and `Web3` instances. These should be loaded from front-end state management (redux) and initialized/saved during the "connect to metamask" saga.
+
 ### Connect to Metamask
 Use the following sample to connect to Metamask and load the user's `coinbase` address. This action should be triggered by a user clicking the "Connect to MetaMask" button. If the following throws, it can be assumed the user is in an incompatible browser (or doesn't have Metamask installed).
 
@@ -136,6 +144,28 @@ async function connectMetamask() {
         throw new Error("non-ethereum browser detected");
     }
   }
+
+```
+### Initialize 0x contracts
+During main initialization, when Metamask is connected, some 0x contract code used to verify and fill trades must be initialized. The objects indicated below must be saved and accessible through the applications state, just like the `web3` instance.
+
+```javascript
+import { Web3Wrapper } from "@0x/web3-wrapper";
+import { ContractWrappers } from "0x.js";
+
+// passed in `web3` should be from Metamask initialization
+async function initZeroEx(web3) {
+    const networkId = await web3.eth.net.getId();
+
+    // save the following two objects in application state
+    const web3Wrapper = new Web3Wrapper(web3.currentProvider);
+    const contractWrappers = new ContractWrapper(web3Wrapper.getProvider(), { networkId });
+
+    return {
+        web3Wrapper,
+        contractWrappers
+    };
+}
 ```
 
 ### Load address
@@ -149,25 +179,200 @@ async function loadCoinbase() {
 ```
 
 ### Check order status
+Prior to [verifying](#verify-fill) or actually [filling an order](#execute-fill) as a taker, the maker order must be checked for its fillable status.
+
+```javascript
+// the order object should come from API call
+async function isFillable(contractWrappers, order) {
+    const info = await contractWrappers.exchange.getOrderInfoAsync(order);
+    if (info.orderStatus !== 2) {
+        return false;
+    }
+    return true;
+}
+```
 
 ### Verify fill
+Before actually [submitting an order for settlement,](#execute-fill) the trade can be "simulated" using the 0x libraries to ensure it will fill successfully.
+
+```javascript
+import { BigNumber } from "0x.js";
+
+// pseudocode - should be loaded from redux state
+const { contractWrappers } = state;
+
+// order should come from API call, taker should be the user's coinbase address
+// if this function *does not* throw, the fill can be assumed to succeed
+async function validateFill(order, taker) {
+    const takerAmount = new BigNumber(order.takerAssetAmount);
+    try {
+        await contractWrappers.exchange.validateFillOrderThrowIfInvalidAsync(
+            order,
+            takerAmount,
+            taker
+        );
+    } catch (error) {
+        throw new Error(`validate fill failed: ${error.message}`);
+    }
+}
+```
 
 ### Execute fill
+After all verification steps have passed, and the user clicks the "confirm" button, the order can be settled on-chain through the 0x smart contracts.
 
-### Check allowances
+Unlike the demo method for setting ERC-20 proxy allowances, this method will resolve after the transaction is signed and submitted to the transaction ID. To wait for the fill to be mined (i.e. for displaying the pending icon) use the demo method for [awaiting transaction success.](#await-transaction-success)
 
-### Check balances
+```javascript
+import { BigNumber } from "0x.js";
 
-### Await transaction
+// pseudocode - should be loaded from redux state
+const { contractWrappers, web3 } = state;
+
+// order should come from API call, taker should be the user's coinbase address
+async function fillOrder(order, taker) {
+    let hash; // will store order txId for viewing on Etherscan
+    const takerAmount = new BigNumber(order.takerAssetAmount);
+    try {
+        hash = await contractWrappers.exchange.fillOrderAsync(
+            order,
+            takerAmount,
+            taker,
+            {
+                gasPrice: await getGasPrice(web3)
+            },
+        );
+    } catch (error) {
+        throw new Error(`fill failed: ${error.message}`);
+    }
+    return hash;
+}
+```
+
+### Check proxy allowance
+Before a user can fill a trade (the "take" button) they must have an allowance set for the 0x proxy contract for each token in the pair. This function can be used to check if [setting proxy allowances](#set-proxy-allowance) is necessary for either token in the pair.
+
+The user must have an allowance equal to or greater than the `takerAssetAmount` of the maker order they are trying to fill.
+
+```javascript
+// pseudocode - load initialized object from redux state
+const { contractWrappers } = state;
+
+// returns a BigNumber instance with the current proxy allowance for tokenAddress
+async function getProxyAllowance(tokenAddress, userAddress) {
+    let allowance;
+    try {
+        allowance = await contractWrappers.erc20Token.getProxyAllowanceAsync(
+            tokenAddress,
+            userAddress,
+        );
+    } catch (error) {
+        throw new Error(`unable to get token proxy allowance: ${error.message}`);
+    }
+    return allowance;
+}
+```
+
+### Set proxy allowance
+Prior to participating in trades through the 0x contract system, the taker (the user) must set token allowances for the 0x proxy contract. An allowance for the 0x proxy contract must be set for each token (base/quote) prior to filling a trade.
+
+This implementation (can be copy/pasted) only resolves after allowance tx is successful and will throw otherwise.
+
+```javascript
+// pseudocode - load initialized objects from redux state
+const { contractWrappers, web3Wrapper } = state;
+
+// tokenAddress should be the 0x-prefixed Ethereum address of the token to set an allowance for
+// userAddress should be the 0x-prefixed Ethereum address of the user (coinbase)
+async function setUnlimitedProxyAllowance(tokenAddress, userAddress) {
+    // first, prompt user to sign and submit 
+    let txId;
+    try {
+        txId = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+            tokenAddress,
+            userAddress,
+        );
+    } catch (error) {
+        // user probably denied transaction
+        throw new Error(`failed to submit allowance transaction: ${error.message}`);
+    }
+
+    // second, wait for the allowance transaction to be mined successfully
+    try {   
+        await web3Wrapper.awaitTransactionSuccessAsync(txId);
+    } catch (error) {
+        throw new Error(`allowance transaction failed: ${error.message}`)
+    }
+    return;
+}
+```
+
+### Check token balance
+This function can be used to check a user's balance for any ERC20 token, provided a 0x-prefixed token address. The value is returned as a `BigNumber` in units of `wei` (base token units).
+
+```javascript
+// pseudocode - load initialized objects from redux state
+const { contractWrappers } = state;
+
+// tokenAddress is the ERC-20 token address, userAddress is the user's coinbase
+async function getTokenBalance(tokenAddress, userAddress) {
+    let balance;
+    try {
+        balance = await contractWrappers.erc20Token.getBalanceAsync(
+            tokenAddress,
+            userAddress,
+        ); 
+    } catch (error) {
+        throw new Error(`unable to get token balance: ${error.message}`);
+    }
+    return balance;
+}
+```
+
+### Await transaction success
+This method can be used to return a promise that resolves when a transaction with the provided `txId` is mined in an Ethereum block.
+
+```javascript
+// pseudocode - load initialized objects from redux state
+const { web3Wrapper } = state;
+
+// 32-byte (0x-prefixed, 66-char) hex encoded transaction hash
+async function awaitTransactionSuccess(txId) {
+    if (!/^0x[a-fA-F0-9]{64}$/.test(txId)) {
+        throw new Error("invalid transaction hash");
+    }
+
+    try {
+        await web3Wrapper.awaitTransactionSuccessAsync(txId);
+    } catch (error) {
+        throw new Error(`transaction failed: ${error.message}`);
+    }
+}
+```
 
 ### Validate Ethereum address
 An Ethereum address is a 20-byte identifier used to receive assets on the Ethereum network, and is usually represented as a 42-character ("0x" prefixed) hexadecimal encoded string. They can be validated with a simple regular expression.
 
 ```javascript
+// valid addresses are 42 character hex-encoded strings (20 bytes, add 0x prefix)
+// the regex used in this method accepts check-summed and non-check-summed addresses
 function isValidAddress(maybeAddress) {
     if (typeof maybeAddress !== "string") {
         return false;
     }
     return /^0x[a-fA-F0-9]{40}$/.test(maybeAddress);
 }
+```
+
+### Get gas price
+In order to prevent slow (or expensive) transactions, a reasonable gas price should be used for all fill transactions. This value can be loaded from the [`https://ethgasstation.info`](https://ethgasstation.info) website.
+
+```javascript
+// provide instantiated web3 instance, returns BigNumber
+async function getGasPrice(web3) {
+    // get a reasonable gas price, use 10 if API fails
+    const rawRes = await fetch("https://ethgasstation.info/json/ethgasAPI.json");
+    const parsed = await rawRes.json();
+    const gasPriceGwei = parsed["safeLow"] ? parsed["safeLow"].toString() : "10";
+    return new BigNumber(web3.utils.toWei(gasPriceGwei, "Gwei"));
+} 
 ```
