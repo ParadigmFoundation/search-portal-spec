@@ -66,7 +66,7 @@ The [specification](#specification) section contains screenshots of relevant sta
 - Understanding of basic order book concepts ([link](https://en.wikipedia.org/wiki/Central_limit_order_book)).
 
 ### Notes
-- Use [`BigNumber`](http://mikemcl.github.io/bignumber.js/ )instances for balances and allowances (can be imported from `0x.js`)
+- Use [`BigNumber`](http://mikemcl.github.io/bignumber.js/ )instances for balances and allowances (can be imported from `0x.js`).
 - Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html)).
 - The portal is built for "standard tokens" (WETH, DAI, & ZRX) whose addresses can [be found here.](#standard-tokens)
 
