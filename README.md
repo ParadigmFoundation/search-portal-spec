@@ -58,16 +58,16 @@ The portal relies on an external RPC API server to act as a bridge between the K
 The [specification](#specification) section contains screenshots of relevant states, however the full [sketch file](./search.sketch) should still be reviewed in detail.
 
 ### Prerequisites
-- Basic understanding of the 0x system ([link](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md))
-- Basic understanding of `web3` and Ethereum ([link](https://web3js.readthedocs.io/en/1.0/))
-- Usage of the `0x.js` library and other 0x tools ([link](https://0x.org/docs/0x.js))
-- Understanding of quote vs. base currency ([link](https://en.wikipedia.org/wiki/Currency_pair))
-- Understanding of bids vs. asks and relation to currency pair ([link](https://www.investopedia.com/terms/b/bid-and-ask.asp))
-- Understanding of basic order book concepts ([link](https://en.wikipedia.org/wiki/Central_limit_order_book))
+- Basic understanding of the 0x system ([link](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md)).
+- Basic understanding of `web3` and Ethereum ([link](https://web3js.readthedocs.io/en/1.0/)).
+- Usage of the `0x.js` library and other 0x tools ([link](https://0x.org/docs/0x.js)).
+- Understanding of quote vs. base currency ([link](https://en.wikipedia.org/wiki/Currency_pair)).
+- Understanding of bids vs. asks and relation to currency pair ([link](https://www.investopedia.com/terms/b/bid-and-ask.asp)).
+- Understanding of basic order book concepts ([link](https://en.wikipedia.org/wiki/Central_limit_order_book)).
 
 ### Notes
-- Use `BigNumber`instances for balances and allowances (can be imported from `0x.js`)
-- Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html))
+- Use [`BigNumber`](http://mikemcl.github.io/bignumber.js/ )instances for balances and allowances (can be imported from `0x.js`)
+- Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html)).
 
 ## Specification
 This section describes the necessary functionality of the search portal, and maps design screenshots to the functionality that must be implemented for each section, based on the [code samples](#code-samples) and [external API](#api-reference).
