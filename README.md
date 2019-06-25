@@ -48,56 +48,174 @@ The [specification](#specification) section contains screenshots of relevant sta
 - Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html))
 
 ## Specification
+This section describes the necessary functionality of the search portal, and maps design screenshots to the functionality that must be implemented for each section, based on the [code samples](#code-samples) and [external API](#api-reference).
+
+The Kosu search portal essentially consists of one page that offers a form to search for and load orders from an external order book. Loaded orders offer a "take" button to submit the order to the Ethereum blockchain for settlement via the 0x smart contract pipeline. 
+
+It offers the ability to set allowances for the 0x proxy contract prior to settlement, depending on weather or not the user already has an allowance set. 
 
 ### Main page
 
+The states in this section indicate the default state of the portal as displayed to the user on load.
+
+Prior to interacting with any functionality of the portal, the user must [allow the website access](#connect-to-metamask) to their Metamask account by clicking "Connect to Metamask."
+
 #### On load
+https://sketch.cloud/s/YjEQL/a/3edMxZ
 ![Main page: on-load](./images/main-no-metamask.png)
+- The default state is to load bids for the WETH/DAI pair.
+- Prior to successful connection, the "take" action on loaded orders should be disabled.
+- When Metamask is not connected, the user should be prompted to connect (top-right).
+- Clicking "connect to metamask" should trigger the [connection function.](#connect-to-metamask)
+- The initialized `web3` and [necessary 0x contract instances](#initialize-0x-contracts) should be saved to accessible state.
 
 #### Metamask connection
+https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Main page: connected](./images/main-connected.png)
+- After successful connection ([connection function](#connect-to-metamask) resolves with no error) the [user's `coinbase` address](#load-user-address) should be displayed.
+- Additionally, their DAI balance (and USD conversion) should be displayed as well.
 
 #### Showing balances
+https://sketch.cloud/s/YjEQL/a/7Dz5Y2
 ![Main page: balance bar](./images/main-balance-bar.png)
+- The top navigation bar always show's the user's `coinbase` address, and balance of the quote token.
+- If the base and quote tokens are switched (via "token pair", or the switch button) the displayed balance should update to the new quote asset.
+- Balances for tokens can be loaded with [a method like this example.](#get-token-balance)
+- For [standard tokens,](#standard-tokens) the address can be loaded from an in-state mapping.
+- For custom tokens, the address can be used directly, [after validation.](#validate-ethereum-address)
+
+### Allowances
+Trading within the 0x ecosystem requires setting an "allowance" for a smart contract that helps facilitate the trade of tokens. This is called a proxy allowance, and must be set for each token in the trading pair (the selected base and quote asset)
+
+Each time the a token within the "token pair" is changed, the user's [proxy allowances should be checked](#check-proxy-allowance) for each token in the pair (by address).
+
+If an allowance must be set for one of the tokens in the pair, the user should be prompted to [set an unlimited proxy allowance](#set-proxy-allowance) for that token's address.
+
+If more than one (i.e. both) assets in the pair do not have sufficient allowances set, the prompt to set an allowance for each should be displayed (see below). The user should be prompted to set the an allowance for the base asset first, then the quote asset.
+
+#### No proxy allowance standard
+https://sketch.cloud/s/YjEQL/a/JD1G4r
+![Allowances: not set standard](./images/allowances-not-set-standard.png)
+- If there is [no proxy allowance](#check-proxy-allowance) for a standard token, this state can be shown.
+- The button "set {TICKER} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address.
+
+#### No proxy allowance custom
+https://sketch.cloud/s/YjEQL/a/ZyGwYp
+![Allowances: not set custom](./images/allowances-not-set-cusotm.png)
+- If there is [no proxy allowance](#check-proxy-allowance) for a custom token, this state can be shown.
+- The button "set {ADDRESS} allowance" should trigger [setting an unlimited proxy allowance](#set-proxy-allowance) for that token address, after the custom address [is validated.](#validate-ethereum-address)
+- The full address should not be shown, but instead concatenated as `0x14d..35a` (for example).
 
 ### Filter form
 
+The filter form section allows the user to query for fillable orders from the Kosu network, based on a token pair (base/quote token) and a side (either "bid" or "ask").
+
+Each time the form is updated, [a matching query](#search-for-orders) should be made to the REST API server, based on the state of the form.
+
+A new query should be made (and the [order table](#order-table) updated) whenever: 
+- A new base asset is selected via drop down
+- A new quote asset is selected via drop down
+- A new custom base token address is entered and validated as an Ethereum address
+- A new custom quote token address is entered and validated as an Ethereum address
+- The base and quote asset are switched (switch button)
+- The "bid/ask" toggle is switched
+
+Additionally, whenever a new base or quote asset is selected, [allowances must be checked](#check-proxy-allowance) for the newly selected token(s). See [the allowance section](#allowances) as well.
+
 #### Standard tokens
+https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Filter form: standard tokens](./images/filter-main-state.png)
+- Some [common ERC-20 tokens](#standard-tokens) are available for selection via a [drop down](#token-drop-down) menu.
+- Both a base (leftmost, WETH here) and quote (rightmost, DAI here) asset can be selected.
+- This state shows a standard token loaded for both base and quote asset.
+- Notice the quote asset's balance (DAI) is displayed to the user.
 
 #### Bid and ask
+https://sketch.cloud/s/YjEQL/a/maZl4g
 ![Filter form: bid and ask](./images/filter-bid-ask.png)
+- The "bid/ask" toggle can be flipped.
+- When toggled, a [new call to `/search`](#search-for-orders) should be made, triggering the [order table](#order-table) to update.
 
 #### Token drop-down
+https://sketch.cloud/s/YjEQL/a/LjEPGQ
 ![Filter form: token drop-down](./images/filter-drop-down.png)
+- The drop down menu for quote and base tokens allows selection of pre-set [standard tokens](#standard-tokens) and custom.
+- Base and quote currency must be different, so if a user tries to set the quote token for what is currently the base token, base and quote should be switched (same as clicking switch button).
+- The "custom" selection allows a user to enter a custom ERC-20 token address (see [here](#standard-to-custom)).
+- Whenever a new token is selected for either base or quote:
+    - [Allowances must be checked](#allowances) for the new token.
+    - A new REST API call [must be made to `/search`](#search-for-orders) with the new token(s).
 
 #### Standard to custom
+https://sketch.cloud/s/YjEQL/a/DvezjJ
 ![Filter form: standard to custom](./images/filter-token-custom.png)
+- This state shows a standard token as the base token, and a custom token as the quote token.
+- Note that displayed prices and sizes in the [order table](#order-table) now show a shortened address instead of  a standard token ticker.
+- When custom is selected, a new API call should not be made until the user has entered a custom token address [and it has been validated.](#validate-ethereum-address)
 
 #### Custom to custom
+https://sketch.cloud/s/YjEQL/a/ajYZ95
 ![Filter form: custom to custom](./images/filter-custom-custom.png)
+- This state shows a custom token selected for both the base and quote tokens.
+- Note that displayed prices and sizes in the [order table](#order-table) now show a shortened address instead of a ticker from a standard token.
+- When custom is selected, a new API call should not be made until the user has entered a custom token address [and it has been validated.](#validate-ethereum-address)
+- In this case, a new API call should only be made after _both_ custom token addresses have been entered and validated.
 
 #### Coming soon
+https://sketch.cloud/s/YjEQL/a/Ok9ADk
 ![Filter form: coming soon hover](./images/filter-coming-soon.png)
-
-#### Search button
+- The "order source" selection can currently only be 0x orders.
+- The other selections (dY/dX and Dharma) should be disabled.
+- If the user hovers over those options, this tooltip can be displayed.
 
 ### Order table
+The order table is where quote snapshots are loaded from the [external API,](#api-reference) based on the [form values](#filter-form) selected by the user.
+
+The quotes displayed in the table are based on response objects from the [the `/search`](#search-for-orders) API method, and if the user clicks "take" on a given quote, the full order is loaded with [the `/order`](#order-by-id) method.
+
+Each time [the form](#filter-form) is updated, a new set of quotes should be loaded from the API.
 
 #### Prompt to fill
+https://sketch.cloud/s/YjEQL/a/qrG9my
 ![Order table: main state](./images/order-table-main.png)
+- If [allowances are correctly set,](#allowances) the "take" button can be displayed to user's for each quote.
+- Clicking "take" should trigger the following actions:
+    - The button should [display the animated loading icon](#pending-state) while the following asynchronous actions complete.
+    - Load the full order based on the quote's `orderId` from [the `/order`](#order-by-id) method.
+    - [Check the order's status](#check-order-status) to ensure it is fillable.
+    - [Verify the fill will succeed](#verify-fill) if submitted on chain.
+    - After the above completes, the button should display "confirm" (see [next state](#confirmation-and-signature)).
+- If the validation fails, show the [failed state.](#failed-fill)
 
 #### Confirmation and signature
 ![Order table: confirm and sign](./images/order-table-confirm.png)
+- After the [pre-fill checks](#prompt-to-fill) complete (triggered by user clicking "take") they are prompted to confirm the fill.
+- If the user clicks "confirm" again, the following should take place:
+    - TThe button should [display the animated loading icon](#pending-state) while the following asynchronous actions complete.
+    - [The fill should be executed,](#execute-fill) triggering a Metamask prompt to the user.
+    - The loading animation should continue to display [while the transaction awaits confirmation.](#await-transaction-success)
+    - When the promise returned from `awaitTransactionSuccess` resolves, the button should display "taken" (see [here](#successful-fill)). 
+- If the fill fails, show the [failed fill state.](#failed-fill)
 
 #### Pending state
+https://sketch.cloud/s/YjEQL/a/44R01d
 ![Order table: fill pending](./images/order-table-pending.png)
+- This state is displayed while [async validation](#prompt-to-fill) and [async execution](#confirmation-and-signature) occur.
+- The displayed icon in the button should rotate to indicate pending requests and transactions.
 
 #### Successful fill
+https://sketch.cloud/s/YjEQL/a/eJPe2q
 ![Order table: fill success](./images/order-table-taken.png)
+- This state can be displayed when a [fill completes](#confirmation-and-signature) successfully.
+- Clicking on the "taken" button should take the user to the Etherscan TX page corresponding to the [fill transaction ID.](#execute-fill)
 
 #### Failed fill
+https://sketch.cloud/s/YjEQL/a/GGAvZb
 ![Order table: fill failed](./images/order-table-failed.png)
+- This state can be displayed when a fill or validation fails when attempting to take an order.
+- If the failure is [during the fill execution,](#execute-fill) no link is needed.
+- If the failure is during [awaiting the fill being mined,](#await-transaction-success) the button can link to Etherscan for that transaction ID.
+- If the failure is during [fill validation](#validate-fill), no link is needed.
 
 ## API Reference
 API reference for a future middleware server that will respond to client requests from a database of Kosu orders.
@@ -470,4 +588,9 @@ async function getGasPrice(web3) {
     const gasPriceGwei = parsed["safeLow"] ? parsed["safeLow"].toString() : "10";
     return new BigNumber(web3.utils.toWei(gasPriceGwei, "Gwei"));
 } 
+```
+
+### Standard tokens
+```
+@todo
 ```
