@@ -149,6 +149,7 @@ Additionally, whenever a new base or quote asset is selected, [allowances must b
 #### Bid and ask
 ![Filter form: bid and ask](./images/filter-bid-ask.png)
 - The "bid/ask" toggle can be flipped.
+- Additionally, the base and quote asset can be switched with the circular arrow button (requires order table update too).
 - When toggled, a [new call to `/search`](#search-for-orders) should be made, triggering the [order table](#order-table) to update.
 
 #### Token drop-down
