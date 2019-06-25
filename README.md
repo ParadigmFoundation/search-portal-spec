@@ -5,7 +5,7 @@ Specification document (this README), [design screenshots](./images), [API refer
 ## Contents
 
 - [Background](#background)
-    - [Helpful knowledge](#helpful-knowledge)
+    - [Prerequisites](#prerequisites)
 - [Specification](#specification)
     - [Main page](#main-page)
     - [Filter form](#filter-form)
@@ -27,7 +27,7 @@ The search portal enables users to view and fill [0x](https://0x.org) orders tha
 
 The portal relies on an external RPC API server to act as a bridge between the Kosu network and clients. This API server is not yet built, and the underlying Kosu network is not yet relaying orders. However, the REST API for the RPC server is defined here, and it will eventually be built to meet this spec. 
 
-### Helpful knowledge
+### Prerequisites
 - Basic understanding of the 0x system ([link](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md))
 - Basic understanding of `web3` and Ethereum ([link](https://web3js.readthedocs.io/en/1.0/))
 - Usage of the `0x.js` library and other 0x tools ([link](https://0x.org/docs/0x.js))
