@@ -27,6 +27,8 @@ The search portal enables users to view and fill [0x](https://0x.org) orders tha
 
 The portal relies on an external RPC API server to act as a bridge between the Kosu network and clients. This API server is not yet built, and the underlying Kosu network is not yet relaying orders. However, the REST API for the RPC server is defined here, and it will eventually be built to meet this spec. 
 
+The [specification](#specification) section contains screenshots of relevant states, however the full [sketch file](./search.sketch) should still be reviewed in detail.
+
 ### Prerequisites
 - Basic understanding of the 0x system ([link](https://github.com/0xProject/0x-protocol-specification/blob/master/v2/v2-specification.md))
 - Basic understanding of `web3` and Ethereum ([link](https://web3js.readthedocs.io/en/1.0/))
@@ -40,36 +42,52 @@ The portal relies on an external RPC API server to act as a bridge between the K
 ### Main page
 
 #### On load
+![Main page: on-load](./images/main-no-metamask.png)
 
 #### Metamask connection
+![Main page: connected](./images/main-connected.png)
 
 #### Showing balances
+![Main page: balance bar](./images/main-balance-bar.png)
 
 ### Filter form
 
 #### Standard tokens
+![Filter form: standard tokens](./images/filter-main-state.png)
 
 #### Bid and ask
+![Filter form: bid and ask](./images/filter-bid-ask.png)
+
+#### Token drop-down
+![Filter form: token drop-down](./images/filter-drop-down.png)
 
 #### Standard to custom
+![Filter form: standard to custom](./images/filter-token-custom.png)
 
 #### Custom to custom
-
-#### Search button
+![Filter form: custom to custom](./images/filter-custom-custom.png)
 
 #### Coming soon
+![Filter form: coming soon hover](./images/filter-coming-soon.png)
+
+#### Search button
 
 ### Order table
 
 #### Prompt to fill
+![Order table: main state](./images/order-table-main.png)
 
 #### Confirmation and signature
+![Order table: confirm and sign](./images/order-table-confirm.png)
 
 #### Pending state
+![Order table: fill pending](./images/order-table-pending.png)
 
 #### Successful fill
+![Order table: fill success](./images/order-table-taken.png)
 
 #### Failed fill
+![Order table: fill failed](./images/order-table-failed.png)
 
 ## API Reference
 API reference for a future middleware server that will respond to client requests from a database of Kosu orders.
