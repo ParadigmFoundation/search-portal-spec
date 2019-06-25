@@ -110,6 +110,7 @@ The returned quotes include `orderId` values which can be used to load the full 
 #### Request format
 - **API Path:** `/search`
 - **Query Parameters:**
+
     | Name | Required | Default | Description |
     | :--: | :------: | :-----: | :---------- |
     |`baseAsset`|`true`|-|Base asset token address.|
@@ -162,6 +163,7 @@ Load a full 0x order object from the Kosu network, provided an `orderId` string.
 - **API Path:** `/order`
 - **HTTP Method:** `GET`
 - **Query Parameters:**
+
     | Name | Required | Default | Description |
     |:---: | :------: | :-----: | :---------- |
     |`id`| `true` | - | The hex-encoded transaction ID of the order to fetch.|
