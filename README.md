@@ -7,6 +7,9 @@ Specification document (this README), [design screenshots](./images), [API refer
 - [Background](#background)
     - [Prerequisites](#prerequisites)
     - [Notes](#notes)
+    - [Supported networks](#supported-networks)
+        - [Mainnet](#mainnet)
+        - [Paradigm 0x Devnet](#paradigm-0x-devnet)
 - [Specification](#specification)
     - [Main page](#main-page)
         - [On load](#on-load)
@@ -69,6 +72,19 @@ The [specification](#specification) section contains screenshots of relevant sta
 - Use [`BigNumber`](http://mikemcl.github.io/bignumber.js/ )instances for balances and allowances (can be imported from `0x.js`).
 - Remember to convert to/from `wei` units where necessary ([more info](http://ethdocs.org/en/latest/ether.html)).
 - The portal is built for "standard tokens" (WETH, DAI, & ZRX) whose addresses can [be found here.](#standard-tokens)
+
+### Supported networks
+Also see [standard tokens.](#standard-tokens)
+
+#### Mainnet
+Live assets, requires real Ether and tokens to fill orders, production only.
+- **Network ID:** `1`
+- **Custom RPC:** `https://ethnet.zaidan.io/mainnet` (or use Metamask default)
+
+#### Paradigm 0x Devnet
+Private Paradigm development network for testing with 0x contracts pre-deployed (uses the 0x [ganache snapshot.](https://0x.org/wiki#Ganache-Setup-Guide)). Reach out for test tokens and Ether.
+- **Network ID:** `50`
+- **Custom RPC:** `https://ethnet.zaidan.io/zrx`
 
 ## Specification
 This section describes the necessary functionality of the search portal, and maps design screenshots to the functionality that must be implemented for each section, based on the [code samples](#code-samples) and [external API](#api-reference).
