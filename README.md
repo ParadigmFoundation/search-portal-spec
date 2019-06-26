@@ -600,6 +600,47 @@ async function getGasPrice(web3) {
 ```
 
 ### Standard tokens
+The portal supports a few common tokens, who's addresses should be either hard-coded or loaded from the included [`common-tokens.json`](./common-tokens.json) file. 
+
+The first level in the object is the network ID, so it may be used as follows:
+```javascript
+// or hard-code into common/utility object
+const COMMON_TOKENS = require("./common-tokens.json");
+
+// pseudocode -- use redux state, etc.
+const { web3 } = state;
+
+// returns the ERC-20 token's address for a supported common ticker, based on the detected networkId
+function getCommonTokenAddress(ticker) {
+    // or use `await web3Wrapper.getNetworkId()`
+    const networkId = await web3.eth.net.getId();
+
+    if (!COMMON_TOKENS[networkId]) {
+        throw new Error("unsupported network");
+    }
+
+    const address = COMMON_TOKENS[networkID][ticker];
+    if (!address) {
+        throw new Error("invalid common token ticker");
+    }
+
+    return address
+}
 ```
-@todo
+
+#### [`./common-tokens.json`](./common-tokens.json)
+
+```json
+{
+    "1": {
+        "WETH": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "DAI": "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+        "ZRX": "0xe41d2489571d322189246dafa5ebde1f4699f498"
+    },
+    "50": {
+        "WETH": "0x34d402f14d58e001d8efbe6585051bf9706aa064",
+        "DAI": "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3",
+        "ZRX": "0xcdb594a32b1cc3479d8746279712c39d18a07fc0"
+    }
+}
 ```
